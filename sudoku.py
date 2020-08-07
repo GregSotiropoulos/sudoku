@@ -24,7 +24,7 @@ import numpy as np
 
 __docformat__ = 'reStructuredText'
 __author__ = 'Greg Sotiropoulos <greg.sotiropoulos@gmail.com>'
-__version__ = 1, 0, 0
+__version__ = 1, 0, 1
 __all__ = 'Sudoku', 'SudokuGames', 'SudokuGui'
 
 
@@ -761,9 +761,10 @@ def benchmark():
 
     print(f'\nSudoku to solve:\n{table}')
 
+    sud = None
     num_runs = 20
-    for i, (meth, next_fun) in enumerate(solve_funs):
-        sud, tt = None, 0
+    for meth, next_fun in solve_funs:
+        tt = 0
         for n in range(num_runs):
             sud = Sudoku(table)
             meth(sud, next_fun)
