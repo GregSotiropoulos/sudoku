@@ -9,7 +9,7 @@ with open(here/'README.md') as fh:
     long_description = fh.read()
 
 setup(
-    name='sudokius',
+    name='sudoku',
     version='1.0.0',
     author='Greg Sotiropoulos',
     author_email='greg.sotiropoulos@gmail.com',
@@ -34,8 +34,8 @@ setup(
         'numpy'
     ],
     package_data={
-        'sudoku17 strings': ['sudoku17.txt'],
-        'application icon': ['sudoku.png']
+        'sudoku17_strings': ['sudoku17.txt'],
+        'application_icon': ['sudoku.png']
     },
     project_urls={
         'Source': 'https://github.com/gregsotiropoulos/sudoku'
