@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from sudoku import Sudoku, SudokuGames
+from sudoku.sudoku import Sudoku, SudokuGames
+
 
 class TestSudokuValid(unittest.TestCase):
     def setUp(self):

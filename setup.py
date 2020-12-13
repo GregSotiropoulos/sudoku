@@ -31,11 +31,12 @@ setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        'numpy'
+        'numpy != 1.19.4'
     ],
     package_data={
-        'sudoku17_strings': ['sudoku17.txt'],
-        'application_icon': ['sudoku.png']
+        '': ['LICENSE', 'README.md'],
+        # package name : [filename1, filename2, ...]
+        'sudoku': ['sudoku.png', 'sudoku17.txt']
     },
     project_urls={
         'Source': 'https://github.com/gregsotiropoulos/sudoku'

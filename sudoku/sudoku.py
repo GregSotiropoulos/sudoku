@@ -1,12 +1,22 @@
 # -*- coding: utf-8 -*-
 
-"""A Sudoku application.
+"""
+.. module:: sudoku
+   :platform: Unix, Windows
+   :synopsis: Dictionaries with key constraints.
+
+.. moduleauthor:: Greg Sotiropoulos <greg.sotiropoulos@gmail.com>
+
+A Sudoku application.
 
 It comes with a GUI that lets you enter your own puzzle or select from a list
 of presets and includes a solver that can be invoked interactively (via a
-"Solve" button in the GUI) or programmatically (using the ``Sudoku`` class).
+"Solve" button in the GUI) or programmatically (using the :class:`Sudoku`
+class).
 """
 
+# stdlib
+from pathlib import Path
 from time import perf_counter as t
 from itertools import product, islice
 from math import sqrt, floor
@@ -14,12 +24,12 @@ from random import seed, sample
 import multiprocessing as mp
 import pickle
 from os import cpu_count
-from os.path import exists
 import tkinter as tk
 from tkinter import ttk, PhotoImage
 from tkinter.font import Font
 from tkinter.messagebox import showerror
 
+# non-stdlib
 import numpy as np
 
 __docformat__ = 'reStructuredText'
@@ -49,17 +59,18 @@ class Sudoku:
     The class also provides a way for client code to supply alternative
     algorithms for choosing the next candidate square, by setting the
     ``next_fun`` argument to a function -- see the documentation for
-    ``solve_recursive()`` and ``solve_iterative()`` for details.
+    ``solve_recursive()` and ``solve_iterative()`` for details.
     """
 
-    # Allowed Sudoku sizes, where size means the length of the Sudoku table.
-    # By default, only 3 different sizes are supported: 9, 16, 25 --
-    # corresponding to box sizes of 3, 4, 5. A standard Sudoku puzzle is a 9x9
-    # table that consists of nine 3x3 boxes.
-    allowed_sizes = np.arange(3, 6) ** 2
+    # Allowed Sudoku sizes, where size means the width (or height) of the
+    # Sudoku table. By default, only 3 different sizes are supported: 9, 16, 25
+    # -- corresponding to box sizes of 3, 4, 5. A standard Sudoku puzzle is a
+    # 9x9 table that consists of nine 3x3 boxes.
+    _allowed_sizes = np.arange(3, 6) ** 2
 
     def __call__(self, *args):
-        """Sudoku solution.
+        """
+        Sudoku solution.
 
         Sudoku instances are callable, solving the puzzle (if it has not
         been solved already) and returning the solution. Note that ``solve``,
@@ -77,11 +88,9 @@ class Sudoku:
         """Static method for input validation.
 
         :param table: An iterable of iterables (eg list of lists) encoding a
-        2D integer array or, directly, a 2D NumPy array.
-
+            2D integer array or, directly, a 2D NumPy array.
         :raise ValueError: if validation fails.
-
-        :return: a square NumPy array representing the puzzle.
+        :return: A square NumPy array representing the puzzle.
         """
         if table is None:
             raise ValueError('No input table specified.')
@@ -97,8 +106,8 @@ class Sudoku:
         if bw**2 != w:
             raise ValueError('Input table width (and height) is not the '
                              'square of an integer.')
-        if w not in cls.allowed_sizes:
-            raise ValueError(f'Only puzzles of sizes {cls.allowed_sizes} are '
+        if w not in cls._allowed_sizes:
+            raise ValueError(f'Only puzzles of sizes {cls._allowed_sizes} are '
                              f'allowed.')
         return table
 
@@ -143,17 +152,18 @@ class Sudoku:
             self.solve()
 
     def available_set(self, ij):
-        """Available (== allowed, ie not appearing in the same row, column or
+        """
+        Available (== allowed, ie not appearing in the same row, column or
         box) numbers at a particular (empty) square.
 
         :param ij: Location of the square, in (row, col) format.
-
         :return: Set of available values at the specified location.
         """
         return self.alphabet_set.difference(self.table[self.rcb[ij]])
 
     def most_constrained_zero(self):
-        """Get the coordinates of the empty square with the fewest available
+        """
+        Get the coordinates of the empty square with the fewest available
         numbers to choose from, together with a set of those numbers.
 
         :raise StopIteration: when there are no remaining empty squares.
@@ -185,7 +195,8 @@ class Sudoku:
         return min_key, zs[min_key]
 
     def _update_avail_sets(self, ij, new_val):
-        """Set current square (the one pointed at by ``ij``) to a new value
+        """
+        Set current square (the one pointed at by ``ij``) to a new value
         and update the ``self.zeros`` dictionary.
 
         The dictionary update consists of recomputing the available sets for
@@ -200,7 +211,8 @@ class Sudoku:
                 zs[idx] = f(idx)  # update the zeros dictionary
 
     def solve_recursive(self, next_fun=most_constrained_zero):
-        """Recursive flavour of the solver (see also ``solve_iterative``).
+        """
+        Recursive flavour of the solver (see also ``solve_iterative``).
 
         The algorithm is essentially the following:
             1. Identify the most 'promising' empty square (by default, the one
@@ -224,7 +236,8 @@ class Sudoku:
             t(), self.table, self.zeros, self._update_avail_sets
 
         def solve():
-            """The core recursive function -- ``solve_recursive`` is just a
+            """
+            The core recursive function -- ``solve_recursive`` is just a
             wrapper/initializer.
             """
             ij_min, available = next_fun(self)
@@ -236,14 +249,16 @@ class Sudoku:
 
         try:
             solve()
-        # This signals that the self.zeros dictionary is empty, ie there are
-        # no more empty squares and thus the solver has succeeded.
+        # A StopIteration exception signals that the self.zeros dictionary is
+        # empty, ie there are no more empty squares and thus the solver has
+        # succeeded.
         except StopIteration:
             self.solve_time = t() - t0
             self.solution = self.table
 
     def solve_iterative(self, next_fun=most_constrained_zero):
-        """Iterative flavour of ``solve_recursive`` (see its documentation).
+        """
+        Iterative flavour of ``solve_recursive`` (see its documentation).
 
         It does not use the call stack (which is a limited resource) but the
         'heap' (pushing to and popping from a list).
@@ -252,7 +267,8 @@ class Sudoku:
             t(), self.zeros, self.table, self._update_avail_sets
 
         def getnext():
-            """Identical to ``next_fun`` but deletes the returned index from
+            """
+            Identical to ``next_fun`` but deletes the returned index from
             the ``self.zeros`` dictionary before returning.
 
             :return: See documentation for ``most_constrained_zero``
@@ -271,14 +287,16 @@ class Sudoku:
                     push((ij_min, available))
                     ij_min, available = getnext()
                 update_fun(ij_min, 0)
-        # This signals that the self.zeros dictionary is empty, ie there are
-        # no more empty squares and thus the solver has succeeded.
+        # A StopIteration exception signals that the self.zeros dictionary is
+        # empty, ie there are no more empty squares and thus the solver has
+        # succeeded.
         except StopIteration:
             self.solve_time = t() - t0
             self.solution = table
 
     def solve(self, solve_fun=solve_iterative, next_fun=most_constrained_zero):
-        """Solves the puzzle.
+        """
+        Solves the puzzle.
 
         It calls either the iterative or the recursive flavour of the solver.
         Optionally, a callable for the "next" function can be supplied.
@@ -292,7 +310,6 @@ class Sudoku:
             resource and you can potentially hit the interpreter's recursion
             limit and get a ``RecursionError`` (see also
             ``sys.setrecursionlimit()``).
-
         :param next_fun: callable that selects a currently empty square (see
             documentation for ``most_constrained_zero``).
         """
@@ -302,8 +319,7 @@ class Sudoku:
 # GUI
 
 class SudokuGuiEntry(ttk.Entry):
-    """Empty square"""
-
+    """Individual square"""
     def __init__(self, *args, sud_grid, table_idx, **kwargs):
         super().__init__(*args, **kwargs)
         self.table_idx = i, j = table_idx
@@ -318,10 +334,17 @@ class SudokuGuiEntry(ttk.Entry):
         ).difference((table_idx,))  # excluding the current entry's index
 
     def get_int(self):
+        """
+        Get number in square as integer.
+
+        :return: The contents of the square as an integer. If the square is
+            empty, 0 is returned.
+        """
         return int(f'0{self.get()}')
 
     def is_valid(self, new):
-        """Input validation for entries (individual squares).
+        """
+        Input validation for entries (individual squares).
 
         Text added/edited by the user is considered valid if it is a positive
         integer that does not appear in the same row, column or (3x3) box as
@@ -329,7 +352,6 @@ class SudokuGuiEntry(ttk.Entry):
 
         :param new: The value that the entry will have if the editing
             operation is allowed (the "after" value).
-
         :return: Whether the user edit is a legal number for that square.
         """
         if not new:
@@ -346,7 +368,6 @@ class SudokuGuiEntry(ttk.Entry):
 
 class SudokuGuiBox(tk.Frame):
     """3x3 box (Frame grouping together 9 Entry elements)."""
-
     def __init__(self, sud_grid, bi, bj, *args, **kwargs):
         super().__init__(sud_grid, *args, **kwargs)
         bw = sud_grid.bw
@@ -440,7 +461,7 @@ class SudokuGuiControls(tk.Frame):
         super().__init__(parent, *args, **kwargs)
         self.parent = parent
         self.prev = None  # 1-item "undo" buffer
-        pad = parent.outer_pad  # padding of the root frame
+        pad = parent._outer_pad  # padding of the root frame
 
         # control (buttons, combobox) specifications start here
         self.load_button = load_btn = ttk.Button(
@@ -475,7 +496,8 @@ class SudokuGuiControls(tk.Frame):
         un_btn.grid(row=1, column=3, padx=0)
 
     def load_sample(self):
-        """Loads one of the predefined samples (first 3 items) in the ComboBox,
+        """
+        Loads one of the predefined samples (first 3 items) in the ComboBox,
         or a randomly picked 17-sudoku.
 
         Note that some of the 17-sudoku are dramatically slow to solve in
@@ -494,7 +516,8 @@ class SudokuGuiControls(tk.Frame):
             )
 
     def solve(self):
-        """Solves the puzzle using the default heuristic (see documentation for
+        """
+        Solves the puzzle using the default heuristic (see documentation for
         :class:`Sudoku` for details).
         """
         grid = self.parent.sud_grid
@@ -519,26 +542,35 @@ class SudokuGuiControls(tk.Frame):
 
 
 class SudokuGui(tk.Tk):
-    """Sudoku graphical user interface. It is a runnable Tk application."""
+    """
+    Sudoku graphical user interface (GUI). It is a runnable ``Tk`` application.
+    GUI controls (buttons, pull-downs etc) should be mostly self-explanatory.
+
+    Certain functions have keyboard shortcuts -- these are:
+        - Ctrl+C: copy table to (GUI-internal, not OS) clipboard
+        - Ctrl+V: paste table from clipboard onto the GUI grid
+        - Ctrl+Z: undo operation (such as editing entries or pasting tables)
+        - Ctrl+R: clear grid (empty all entries)
+    """
 
     def __init__(self, table_or_size=9, *args, **kwargs):
         """
 
         :param table_or_size:
-
         :param args:
-
         :param kwargs:
         """
         super().__init__(*args, **kwargs)
         self.title("Sudoku")
         self.resizable(width=False, height=False)
-        iconfile = 'sudoku.png'
-        if exists(iconfile):
-            icon = PhotoImage(master=self, file=iconfile)
+
+        # window icon -- skip if not present
+        iconfile = Path(Path(__file__).parent, 'sudoku.png')
+        if iconfile.exists():
+            icon = PhotoImage(master=self, file=str(iconfile))
             self.tk.call('wm', 'iconphoto', self._w, icon)
 
-        self.outer_pad = pad = 10
+        self._outer_pad = pad = 10
         pads = dict(padx=pad, pady=pad)
 
         # Sudoku grid
@@ -557,10 +589,11 @@ class SudokuGui(tk.Tk):
         self._clip_styles = None
 
         # keyboard shortcuts
-        self.bind_all('<Control-v>', self._paste_from_clip)
-        self.bind_all('<Control-c>', self._copy_to_clip)
-        self.bind_all('<Control-r>', lambda e: controls.clear())
-        self.bind_all('<Control-z>', lambda e: controls.undo())
+        bind = self.bind_all
+        bind('<Control-v>', self._paste_from_clip)
+        bind('<Control-c>', self._copy_to_clip)
+        bind('<Control-r>', lambda e: controls.clear())
+        bind('<Control-z>', lambda e: controls.undo())
 
     def _copy_to_clip(self, event):
         table, self._clip_styles = self.sud_grid.toarray(export_styles=True)
@@ -578,7 +611,8 @@ class SudokuGui(tk.Tk):
 
 
 class SudokuGames:
-    """Puzzle database and solve scheduler.
+    """
+    Puzzle database and solve scheduler.
 
     Provides sample puzzles -- 3 of varying levels of difficulty as well as
     an exhaustive collection of puzzles with only 17 clues. It has been
@@ -598,7 +632,7 @@ class SudokuGames:
     >>> from collections import Counter
     >>> sg = SudokuGames(start=10, end=30)
     >>> full_table_cnt = Counter([*range(1, 10)]*9)
-    >>> solved = sg.solve_all_17(silent=True)
+    >>> solved = sg.solve_all_17(_silent=True)
     >>> all(Counter(table.flatten()) == full_table_cnt for _, table in solved)
     True
 
@@ -682,7 +716,8 @@ class SudokuGames:
         # dictionary of all puzzles, indexed by the 81-digit string, is
         # constructed. The values are the "deserialized" numpy 2D arrays
         # (such as those in SudokuGames.samples).
-        with open('sudoku17.txt') as sud17file:
+        sud17txt = Path(Path(__file__).parent, 'sudoku17.txt')
+        with open(sud17txt) as sud17file:
             self.sudoku17 = {
                 sud: np.fromiter(sud.rstrip(), dtype=np.uint8).reshape((-1, 9))
                 # for each of the first `max_lines` puzzles; `sud` is a
@@ -690,8 +725,12 @@ class SudokuGames:
                 for sud in islice(sud17file, start, end)
             }
 
+        # mostly for the linter to stop complaining
+        self._silent = self._t0 = None
+
     def solve_all_17(self, silent=False):
-        """Solve all loaded 17-sudokus, using ``multiprocessing`` to
+        """
+        Solve all loaded 17-sudokus, using ``multiprocessing`` to
         distribute the work to a pool of worker processes.
 
         :return: A list of (puzzle-string, solved-table) items, identical to
@@ -712,10 +751,10 @@ class SudokuGames:
             return items
 
     def solve_all_17_async(self, silent=False):
-        """Asynchronous version of ``solve_all_17``"""
+        """Asynchronous version of ``solve_all_17()``"""
         with mp.Pool() as pool:
             self.t0 = t()
-            self.silent = silent
+            self._silent = silent
             return pool.map_async(
                 self._get_solution,
                 self.sudoku17.items(),
@@ -730,17 +769,18 @@ class SudokuGames:
         return unsolved_str, Sudoku(table)()
 
     def _save_results(self, results):
-        # ``results`` is a list of 2-tuples, each returned by _get_solution()
+        # `results` is a list of 2-tuples, each returned by `_get_solution()`
         with open(self.solved17_fname, 'wb+') as handle:
             pickle.dump(results, handle)
-        if not self.silent:
+        if not self._silent:
             print(f'Elapsed time for {len(results)} 17-sudokus: '
                   f'{t()-self.t0:.2f} sec.\n')
-        delattr(self, 'silent')
+        delattr(self, '_silent')
 
 
 def benchmark():
-    """Some basic performance benchmarks. You are encouraged to implement
+    """
+    Some basic performance benchmarks. You are encouraged to implement
     your own 'next' function!
     """
     sg = SudokuGames(end=24)
