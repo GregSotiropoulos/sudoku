@@ -9,6 +9,7 @@
 
 A Sudoku application.
 
+|
 It comes with a GUI that lets you enter your own puzzle or select from a list
 of presets and includes a solver that can be invoked interactively (via a
 "Solve" button in the GUI) or programmatically (using the :class:`Sudoku`
@@ -41,11 +42,13 @@ __all__ = 'Sudoku', 'SudokuGames', 'SudokuGui'
 class Sudoku:
     """Sudoku puzzle solver.
 
+    |
     The puzzle grid is represented by a 2D numpy array. The solver picks
     an empty square and exhaustively tries all legal values, which for a
     standard 9x9 Sudoku are numbers 1-9 except those that may already appear
     in the same row, column or 3x3 box as the empty square.
 
+    |
     What then determines the runtime of the solver is the algorithm used to
     pick an empty square. The default algorithm is a heuristic one, and one
     that humans intuitively employ (among other heuristics): pick the most
@@ -56,6 +59,7 @@ class Sudoku:
     compared to a "brute-force" approach in which an empty square is picked at
     random.
 
+    |
     The class also provides a way for client code to supply alternative
     algorithms for choosing the next candidate square, by setting the
     ``next_fun`` argument to a function -- see the documentation for
@@ -72,6 +76,7 @@ class Sudoku:
         """
         Sudoku solution.
 
+        |
         Sudoku instances are callable, solving the puzzle (if it has not
         been solved already) and returning the solution. Note that ``solve``,
         ``solve_iterative`` and ``solve_recursive`` compute the solution but
@@ -199,6 +204,7 @@ class Sudoku:
         Set current square (the one pointed at by ``ij``) to a new value
         and update the ``self.zeros`` dictionary.
 
+        |
         The dictionary update consists of recomputing the available sets for
         every empty square that is in the same row, column or box as the
         current one.
@@ -214,17 +220,19 @@ class Sudoku:
         """
         Recursive flavour of the solver (see also ``solve_iterative``).
 
+        |
         The algorithm is essentially the following:
-            1. Identify the most 'promising' empty square (by default, the one
-               that has the fewest available candidates to pick from)
-            2. Pick one of the candidates and assign it to the location of the
-               corresponding zero in the 2D array in ``self.table``
-            3. Remove that candidate from the ``self.zeros`` dictionary.
-            4. Recursively try to solve the new table (which contains one less
-               empty square now).
-            5. If a solution is found (all squares are full), store it in
-               ``self.solution`` and return, otherwise go to step 2 and try
-               another candidate.
+            |
+            #.  Identify the most 'promising' empty square (by default, the one
+                that has the fewest available candidates to pick from)
+            #.  Pick one of the candidates and assign it to the location of the
+                corresponding zero in the 2D array in ``self.table``
+            #.  Remove that candidate from the ``self.zeros`` dictionary.
+            #.  Recursively try to solve the new table (which contains one
+                less empty square now).
+            #.  If a solution is found (all squares are full), store it in
+                ``self.solution`` and return, otherwise go to step 2 and try
+                another candidate.
 
         :param next_fun: Callable that must return the index of the empty
             square to be considered next, together with the set of numbers that
@@ -298,6 +306,7 @@ class Sudoku:
         """
         Solves the puzzle.
 
+        |
         It calls either the iterative or the recursive flavour of the solver.
         Optionally, a callable for the "next" function can be supplied.
 
@@ -346,6 +355,7 @@ class SudokuGuiEntry(ttk.Entry):
         """
         Input validation for entries (individual squares).
 
+        |
         Text added/edited by the user is considered valid if it is a positive
         integer that does not appear in the same row, column or (3x3) box as
         the currently edited entry.
@@ -500,6 +510,7 @@ class SudokuGuiControls(tk.Frame):
         Loads one of the predefined samples (first 3 items) in the ComboBox,
         or a randomly picked 17-sudoku.
 
+        |
         Note that some of the 17-sudoku are dramatically slow to solve in
         comparison to all other sudokus; the former might take anything from
         200 ms to more than a minute to solve, whereas most other puzzles
@@ -696,6 +707,7 @@ class SudokuGames:
         """Loads the 17-sudokus stored in sudoku17.txt into a dictionary for
         later use.
 
+        |
         The text file (downloaded from ) stores 17-sudokus as 81-character
         strings, each on a separate line. These strings are used as keys in a
         dictionary whose values are the NumPy 2D arrays corresponding to that
@@ -703,7 +715,6 @@ class SudokuGames:
         to load a particular range of the 40,000-plus-line text file.
 
         :param start: Starting line number
-
         :param end: Ending line number (non-inclusive, as in slice syntax)
         """
         end_str = 'end' if end is None else str(end)
